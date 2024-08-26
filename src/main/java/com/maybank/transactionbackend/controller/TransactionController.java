@@ -32,10 +32,8 @@ public class TransactionController {
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
 
-		// Use the existing search method that searches by customerId, accountNumber, or description
 		Page<Transaction> transactions = transactionService.searchTransactions(customerId, accountNumber, description, page, size);
 
-		// Create a custom response structure
 		Map<String, Object> response = new HashMap<>();
 		response.put("transactions", transactions.getContent());
 		response.put("currentPage", transactions.getNumber());
@@ -52,10 +50,8 @@ public class TransactionController {
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
 
-		// Use the new search method that searches across any of the fields
 		Page<Transaction> transactions = transactionService.searchTransactionsAnyField(searchTerm, page, size);
 
-		// Create a custom response structure
 		Map<String, Object> response = new HashMap<>();
 		response.put("transactions", transactions.getContent());
 		response.put("currentPage", transactions.getNumber());

@@ -30,10 +30,7 @@ public class TransactionService {
 	@Autowired
 	private TransactionRepository transactionRepository;
 
-	/**
-	 * Search transactions based on customerId, accountNumber, or description.
-	 * If multiple fields are provided, it will search across all fields.
-	 */
+
 	public Page<Transaction> searchTransactions(String customerId, String accountNumber, String description, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("trxDate").descending().and(Sort.by("trxTime").descending()));
 
@@ -49,7 +46,6 @@ public class TransactionService {
 			return transactionRepository.findAll(pageable);
 		}
 	}
-
 
 	public Page<Transaction> searchTransactionsAnyField(String searchTerm, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("trxDate").descending().and(Sort.by("trxTime").descending()));
