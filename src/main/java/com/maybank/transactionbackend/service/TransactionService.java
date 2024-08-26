@@ -4,6 +4,8 @@ import com.maybank.transactionbackend.dto.TransactionUpdateRequest;
 import com.maybank.transactionbackend.exception.ResourceNotFoundException;
 import com.maybank.transactionbackend.model.Transaction;
 import com.maybank.transactionbackend.repository.TransactionRepository;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +14,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -24,36 +30,69 @@ public class TransactionService {
 	@Autowired
 	private TransactionRepository transactionRepository;
 
+	/**
+	 * Search transactions based on customerId, accountNumber, or description.
+	 * If multiple fields are provided, it will search across all fields.
+	 */
 	public Page<Transaction> searchTransactions(String customerId, String accountNumber, String description, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("trxDate").descending().and(Sort.by("trxTime").descending()));
 
 		logger.info("Searching transactions with customerId={}, accountNumber={}, description={}", customerId, accountNumber, description);
 
-		if (customerId != null) {
+		if (customerId != null && !customerId.isEmpty()) {
 			return transactionRepository.findByCustomerId(customerId, pageable);
-		} else if (accountNumber != null) {
+		} else if (accountNumber != null && !accountNumber.isEmpty()) {
 			return transactionRepository.findByAccountNumber(accountNumber, pageable);
-		} else if (description != null) {
+		} else if (description != null && !description.isEmpty()) {
 			return transactionRepository.findByDescriptionContaining(description, pageable);
 		} else {
 			return transactionRepository.findAll(pageable);
 		}
 	}
 
+
+	public Page<Transaction> searchTransactionsAnyField(String searchTerm, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size, Sort.by("trxDate").descending().and(Sort.by("trxTime").descending()));
+
+		logger.info("Searching transactions across any field with searchTerm={}", searchTerm);
+
+		return transactionRepository.findByCustomerIdContainingOrAccountNumberContainingOrDescriptionContaining(searchTerm, searchTerm, searchTerm, pageable);
+	}
+
 	@Transactional
 	public Transaction updateTransaction(Long id, TransactionUpdateRequest request) throws Exception {
 		logger.info("Updating transaction with id={}", id);
 		Optional<Transaction> optionalTransaction = transactionRepository.findById(id);
+
 		if (optionalTransaction.isPresent()) {
 			Transaction transaction = optionalTransaction.get();
-			if (!transaction.getVersion().equals(request.getVersion())) {
-				throw new Exception("Transaction has been updated by another process.");
+
+			// Update only the fields provided in the request
+			if (request.getDescription() != null) {
+				transaction.setDescription(request.getDescription());
 			}
-			transaction.setDescription(request.getDescription());
-			logger.info("Transaction with id={} updated successfully", id);
-			return transactionRepository.save(transaction);
+			if (request.getTrxAmount() != null) {
+				transaction.setTrxAmount(request.getTrxAmount());
+			}
+			if (request.getTrxDate() != null) {
+				transaction.setTrxDate(request.getTrxDate());
+			}
+			if (request.getTrxTime() != null) {
+				transaction.setTrxTime(request.getTrxTime());
+			}
+
+			try {
+				// Save the updated entity
+				Transaction updatedTransaction = transactionRepository.save(transaction);
+				logger.info("Transaction with id={} updated successfully", id);
+				return updatedTransaction;
+			} catch (Exception ex) {
+				logger.error("Error saving transaction: Unexpected error occurred for id={}", id, ex);
+				throw new PersistenceException("Unexpected error occurred.", ex);
+			}
 		} else {
 			throw new ResourceNotFoundException("Transaction not found with id=" + id);
 		}
 	}
+
 }

@@ -23,5 +23,6 @@ public class Transaction {
 	private String customerId;
 
 	@Version
-	private Integer version; // For handling concurrent updates
+	private Integer version;
+
 }

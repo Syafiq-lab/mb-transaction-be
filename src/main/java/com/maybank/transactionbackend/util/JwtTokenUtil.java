@@ -1,9 +1,13 @@
 package com.maybank.transactionbackend.util;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +23,8 @@ public class JwtTokenUtil implements Serializable {
 
 	private static final long serialVersionUID = -2550185165626007488L;
 	public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+
+	private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
 
 	// Generate a secure key
 	private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
@@ -37,7 +43,15 @@ public class JwtTokenUtil implements Serializable {
 	}
 
 	private Claims getAllClaimsFromToken(String token) {
-		return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+		try {
+			return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+		} catch (ExpiredJwtException | SignatureException e) {
+			logger.error("JWT error: {}", e.getMessage());
+			throw e; // Re-throw to be handled by the JwtExceptionHandler
+		} catch (Exception e) {
+			logger.error("Error parsing JWT token: {}", e.getMessage());
+			throw new RuntimeException("Error parsing JWT token", e);
+		}
 	}
 
 	private Boolean isTokenExpired(String token) {

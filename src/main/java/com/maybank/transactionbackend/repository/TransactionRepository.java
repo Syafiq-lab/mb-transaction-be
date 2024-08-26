@@ -14,4 +14,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 	Page<Transaction> findByAccountNumber(String accountNumber, Pageable pageable);
 
 	Page<Transaction> findByDescriptionContaining(String description, Pageable pageable);
+
+	Page<Transaction> findByCustomerIdContainingOrAccountNumberContainingOrDescriptionContaining(
+			String customerId, String accountNumber, String description, Pageable pageable
+	);
+
 }
