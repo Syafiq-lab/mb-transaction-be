@@ -22,20 +22,13 @@ cd transaction-backend
 ### 2. Configure the Application
    Create an application.properties file in the src/main/resources directory with the following content:
    ```properties
-   # Database Configuration
-spring.datasource.url=jdbc:mysql://localhost:3306/maybank_test
+spring.datasource.url=jdbc:mysql://localhost:3306/"your db"
 spring.datasource.username=root
-spring.datasource.password=yourpassword
+spring.datasource.password=
 spring.jpa.hibernate.ddl-auto=update
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
-# JWT Configuration
-jwt.secret=your_jwt_secret_key
-
-# Spring Boot Configuration
-spring.main.allow-circular-references=true
-spring.mvc.pathmatch.matching-strategy=ant_path_matcher
-spring.jpa.show-sql=true
+spring.batch.initialize-schema=always
+schema=always
 ```
 
 ### 3. Build and Run the Application
