@@ -250,6 +250,7 @@ The API uses a consistent response structure for both successful and error respo
 All exceptions are handled by the GlobalExceptionHandler class.
 Detailed logging is provided using SLF4J, including logging for both successful operations and exceptions.
 
+## Activity Diagram
 ```mermaid
 sequenceDiagram
     participant User as User
@@ -275,3 +276,37 @@ sequenceDiagram
     LoggingAspect-->>LoggingAspect: Log results
 
 ```
+
+## Design Patterns
+### 1. Model-View-Controller (MVC) Pattern:
+
+- The entire structure of the backend application is based on the MVC Pattern. 
+    - Example:
+      - Controller Layer: AuthController, TransactionController handle HTTP requests. 
+      - Service Layer: JwtUserDetailsService, TransactionService handle business logic. 
+      - Model Layer: User, Transaction represent the data structure. 
+  
+### 2. Singleton Pattern:
+  - Spring beans like JwtTokenUtil, LoggingAspect, and AuthenticationManager are created as singletons by default, ensuring only one instance exists in the application context. 
+    - Example:
+      - JwtTokenUtil and LoggingAspect are typical examples of beans where a single instance is shared across the application.
+
+### 3. Dependency Injection (DI) Pattern:
+- The Dependency Injection Pattern is central to Spring, where dependencies are injected into components like controllers, services, and repositories.
+  - Example:
+    - @Autowired is used to inject beans like JwtUserDetailsService, AuthenticationManager, and JwtTokenUtil into controllers.
+    
+### 4. Proxy Pattern:
+- The Proxy Pattern is applied in the way Spring AOP (Aspect-Oriented Programming) works. The LoggingAspect acts as a proxy, adding additional behavior (logging) to methods in the controller and service layers. 
+  - Example:
+    - The LoggingAspect intercepts method calls and logs before and after method execution without modifying the actual method logic.
+    
+### 5. Builder Pattern:
+- The Builder Pattern is used in creating and configuring various components in the backend application. 
+  - Example:
+    - Configuring HTTP security in SecurityConfig using the HttpSecurity builder to define security rules and CORS configurations.
+    
+### 6. Template Method Pattern:
+- Spring Security uses the Template Method Pattern where the core security flow is defined by the framework, and specific security configurations are provided in classes like SecurityConfig. 
+  - Example:
+    - The security setup involves overriding methods in SecurityConfig to provide custom authentication and authorization rules.
