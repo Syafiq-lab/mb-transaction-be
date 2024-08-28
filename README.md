@@ -249,3 +249,29 @@ The API uses a consistent response structure for both successful and error respo
 ## Logging and Error Handling
 All exceptions are handled by the GlobalExceptionHandler class.
 Detailed logging is provided using SLF4J, including logging for both successful operations and exceptions.
+
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant Controller as Controller
+    participant JwtRequestFilter as JwtRequestFilter
+    participant AuthManager as AuthenticationManager
+    participant JwtTokenUtil as JwtTokenUtil
+    participant Service as Service
+    participant ExceptionHandler as ExceptionHandler
+    participant LoggingAspect as LoggingAspect
+
+    User->>JwtRequestFilter: Send Request (login/transaction)
+    JwtRequestFilter->>Controller: Pass validated request
+    Controller->>AuthManager: Authenticate (if login)
+    AuthManager->>JwtTokenUtil: Generate JWT Token
+    JwtTokenUtil-->>Controller: Return JWT Token
+    Controller->>Service: Process business logic (transaction)
+    Service-->>Controller: Return response
+    Controller-->>User: Send response (JWT/Transaction)
+    Controller->>ExceptionHandler: Handle exceptions (if any)
+    ExceptionHandler-->>User: Return error response
+    LoggingAspect->>Controller: Log before and after method execution
+    LoggingAspect-->>LoggingAspect: Log results
+
+```
